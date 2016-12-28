@@ -10,7 +10,7 @@ Tags = ["life","coding"]
 
 一个python3例子
 
-```python3
+```python
 import os
 
 print(os.getcwd())
