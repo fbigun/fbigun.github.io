@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Development on 随想</title>
+    <link>//fbigun.github.io/categories/development/index.xml</link>
+    <description>Recent content in Development on 随想</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="//fbigun.github.io/categories/development/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>hugo 利用 travis-ci 持续集成生成静态博客部署在github</title>
+      <link>//fbigun.github.io/post/hugo-travis-ci-blog/</link>
+      <pubDate>Mon, 16 Jan 2017 23:18:41 +0800</pubDate>
+      
+      <guid>//fbigun.github.io/post/hugo-travis-ci-blog/</guid>
+      <description>&lt;h2 id=&#34;描述&#34;&gt;描述&lt;/h2&gt;
+
+&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Hugo&lt;/code&gt;是由&lt;code&gt;Go&lt;/code&gt;语言实现的静态网站生成器。简单、易用、高效、易扩展、快速部署。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Travis CI&lt;/code&gt;是在软件开发领域中的一个在线的，分布式的持续集成服务，用来构建及测试在 &lt;code&gt;GitHub&lt;/code&gt; 托管的代码。这个软件的代码同时也是开源的，可以在 &lt;code&gt;GitHub&lt;/code&gt; 上下载到，尽管开发者当前并不推荐在闭源项目中单独使用它。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;github.com&lt;/code&gt; &lt;code&gt;coding.net&lt;/code&gt;两个网站为本次博客示例的两个部署点。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;hugo-使用方法&#34;&gt;hugo 使用方法&lt;/h2&gt;
+
+&lt;p&gt;使用 hugo 生成博客的生成器，先获取 hugo 二进制文件，在 windows/linux/mac/unix 等系统下均有相关的二进制文件，也可使用源码编译生成二进制文件使用。&lt;/p&gt;
+
+&lt;h3 id=&#34;创建站点&#34;&gt;创建站点&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;hugo new site &amp;lt;站点名称/路径&amp;gt;
+hugo new site . #在当前目录下创建站点
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;获取-hugo-博客系统的主题&#34;&gt;获取 hugo 博客系统的主题&lt;/h3&gt;
+
+&lt;p&gt;在 &lt;a href=&#34;https://github.com/spf13/hugoThemes&#34;&gt;hugoThemes&lt;/a&gt; 上获取主题文件放在站点源文件 &lt;code&gt;themes&lt;/code&gt; 文件夹下。或者使用 &lt;code&gt;git subtree&lt;/code&gt; 管理主题。用法如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;git subtree add [--squash] -P &amp;lt;prefix&amp;gt; &amp;lt;commit&amp;gt;
+git subtree add [--squash] -P &amp;lt;prefix&amp;gt; &amp;lt;repository&amp;gt; &amp;lt;refspec&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;提交文章&#34;&gt;提交文章&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;hugo new welcome.md  #生成文章的 markdown 文档文件
+hugo new post/first.md  #生成的文件在 `content/post/` 目录下,成为分类。
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;调试部署&#34;&gt;调试部署&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;hugo server --bind=&amp;quot;0.0.0.0&amp;quot; --appendPort=false -p 80 -b http://XXX.com
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;通过apache2反向代理，需要加上&lt;code&gt;--appendPort=false&lt;/code&gt;，否则转换后的public下面的url地址都会带上你的hugo端口（1313）。&lt;/p&gt;
+
+&lt;h2 id=&#34;travis-ci-使用方法&#34;&gt;Travis CI 使用方法&lt;/h2&gt;
+
+&lt;h3 id=&#34;基础构建脚本&#34;&gt;基础构建脚本&lt;/h3&gt;
+
+&lt;p&gt;Travis CI使用YAML文件作为构建脚本，在项目根目录创建.travis.yml文件。&lt;/p&gt;
+
+&lt;h3 id=&#34;demo使用方式&#34;&gt;demo使用方式&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-yml&#34;&gt;language: android   # 声明构建语言环境
+
+notifications:      # 每次构建的时候是否通知，如果不想收到通知邮箱（个人感觉邮件贼烦），那就设置false吧
+  email: false
+
+sudo: false         # 开启基于容器的Travis CI任务，让编译效率更高。
+
+android:            # 配置信息
+  components:
+    - tools
+    - build-tools-23.0.2              
+    - android-23                     
+    - extra-android-m2repository     # Android Support Repository
+    - extra-android-support          # Support Library
+
+before_install:     
+ - chmod +x gradlew  # 改变gradlew的访问权限
+
+script:              # 执行:下面的命令
+  - ./gradlew assembleRelease  
+
+before_deploy:       # 部署之前
+  # 使用 mv 命令进行修改apk文件的名字
+  - mv app/build/outputs/apk/app-release.apk app/build/outputs/apk/buff.apk  
+
+deploy:              # 部署
+  provider: releases # 部署到GitHub Release，除此之外，Travis CI还支持发布到fir.im、AWS、Google App Engine等
+  api_key:           # 填写GitHub的token （Settings -&amp;gt; Personal access tokens -&amp;gt; Generate new token）
+    secure: 7f4dc45a19f742dce39cbe4d1e5852xxxxxxxxx 
+  file: app/build/outputs/apk/buff.apk   # 部署文件路径
+  skip_cleanup: true     # 设置为true以跳过清理,不然apk文件就会被清理
+  on:     # 发布时机           
+    tags: true       # tags设置为true表示只有在有tag的情况下才部署
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;因为Repo是Android项目，所以构建语言language选择android。&lt;/li&gt;
+&lt;li&gt;选择了Android项目后，就在android中的components的tag中设置Android项目需要的依赖。&lt;/li&gt;
+&lt;li&gt;Travis CI编译Android实际上也是调用项目中的构建脚本的。现在大部分Android项目都是用Gradle构建的，如果是要打Release版本的APK包，在script加入./gradlew assembleRelease就行了。&lt;/li&gt;
+&lt;li&gt;Travis CI每次任务完成之后，就会把所有生成的文件清掉,skip_cleanup这个Tag要设置为True，不这样做的话，Travis CI在部署之前就会清空生成的APK文件，那样你就什么都得不到了。&lt;/li&gt;
+&lt;li&gt;Travis CI默认支持发布到Github Release上，不需要配置别的脚本;如果不想那么麻烦的话，可以使用Travis CI提供的travis命令行工具。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;travis-使用方法&#34;&gt;travis 使用方法&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;gem install travis -v 1.8.0 --no-rdoc --no-ri
+travis setup releases   # 安装 github Release
+travis encrypt &amp;quot;SOMESTRING=VALUESTRING&amp;quot;    # 加密字符串，以`key-value`形式
+travis encrypt-file super_secret.txt --add # 加密文件,并且添加解密命令到 .travis.yml
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;hugo博客travis-yml文件内容&#34;&gt;hugo博客travis.yml文件内容&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-yml&#34;&gt;language: go
+go:
+- master
+
+branches:
+  only:
+  - hugo
+
+before_install:
+- openssl aes-256-cbc -K $encrypted_278ded750974_key -iv $encrypted_278ded750974_iv -in travis-CI-key.enc -out ~/.ssh/id_rsa -d
+- sudo chmod 600 ~/.ssh/id_rsa
+
+install:
+- curl -LO https://github.com/spf13/hugo/releases/download/v0.18.1/hugo_0.18.1_Linux-64bit.tar.gz
+- tar zxf hugo_0.18.1_Linux-64bit.tar.gz
+- sudo mv hugo_0.18.1_linux_amd64/hugo_0.18.1_linux_amd64 /bin/hugo
+
+addons:
+  ssh_known_hosts: git.coding.net
+
+script:
+- hugo --baseURL //fbigun.github.io/
+- cd ./public
+- git init
+- git config user.name &amp;quot;fbigun&amp;quot;
+- git config user.email &amp;quot;rsdhlz@qq.com&amp;quot;
+- git add -A .
+- git commit -m &amp;quot;Update docs&amp;quot;
+- git push --force --quiet &amp;quot;git@github.com:fbigun/fbigun.github.io.git&amp;quot; master:master
+- cd ..
+- hugo --baseURL //fbigun.coding.me/
+- cd ./public
+- git add -A .
+- git commit --amend -m &amp;quot;Update docs&amp;quot;
+- git push --force --quiet &amp;quot;git@git.coding.net:fbigun/fbigun.coding.me.git&amp;quot; master:master
+
+notifications:
+  email: false
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;文件参考引用&#34;&gt;文件参考引用&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.worldhello.net/gotgit/04-git-model/050-subtree-model.html#git-subtree&#34;&gt;git subtree插件&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&#34;http://tonybai.com/2015/09/23/intro-of-gohugo/&#34;&gt;使用Hugo搭建静态站点&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&#34;http://www.jianshu.com/p/8308b8f08de9&#34;&gt;Travis Ci的最接底气的中文使用教程&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&#34;https://docs.travis-ci.com/user/encryption-keys/&#34;&gt;Encryption keys&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&#34;https://github.com/nukc/how-to-use-travis-ci&#34;&gt;如何简单入门使用Travis-CI持续集成&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&#34;http://www.gohugo.org/&#34;&gt;Hugo中文文档&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Dockerfile 简单使用实例</title>
+      <link>//fbigun.github.io/post/Dockerfile-use-method/</link>
+      <pubDate>Sat, 31 Dec 2016 11:03:14 +0800</pubDate>
+      
+      <guid>//fbigun.github.io/post/Dockerfile-use-method/</guid>
+      <description>&lt;h2 id=&#34;如何使用&#34;&gt;如何使用&lt;/h2&gt;
+
+&lt;p&gt;Dockerfile 用来创建一个image,包含了用户安装的软件依赖等。&lt;/p&gt;
+
+&lt;p&gt;例: 当前目录下包含Dockerfile,使用命令build来创建新的image,并命名为 explame/explame:v1&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker built -t explame/explame:v1 .
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;dockerfile-关键字&#34;&gt;Dockerfile 关键字&lt;/h2&gt;
+
+&lt;h3 id=&#34;dockerfilede-的基本格式&#34;&gt;Dockerfilede 的基本格式&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;# Comment
+INSTRUCTION agruments
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;from&#34;&gt;FROM&lt;/h3&gt;
+
+&lt;p&gt;基于某个镜像，例:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;FROM ubuntu:14.04
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;run&#34;&gt;RUN&lt;/h3&gt;
+
+&lt;p&gt;执行镜像构建、安装等。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;RUN echo hello
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;maintainer&#34;&gt;MAINTAINER&lt;/h3&gt;
+
+&lt;p&gt;镜像构建者信息等。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;MAINTAINER XXX &amp;lt; XX@XX.com &amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;cmd&#34;&gt;CMD&lt;/h3&gt;
+
+&lt;p&gt;容器启动时执行的命令，Dockerfile 只能包含一个 CMD ，多个只执行最后一个。
+CMD 主要用于容器启动时默认执行的命令，当Docker run command的命令匹配到CMD command时，会替换CMD执行的命令。格式如:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;CMD echo hello world
+CMD [&amp;quot;echo&amp;quot;, &amp;quot;hello world&amp;quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;entrypoint&#34;&gt;ENTRYPOINT&lt;/h3&gt;
+
+&lt;p&gt;类似于CMD，区别在于命令不可替换，和 CMD 可组合使用。例:&lt;/p&gt;
+
+&lt;p&gt;ENTRYPOINT [&amp;ldquo;/bin/echo&amp;rdquo;]
+   CMD [&amp;ldquo;hello word&amp;rdquo;]&lt;/p&gt;
+
+&lt;h3 id=&#34;user&#34;&gt;USER&lt;/h3&gt;
+
+&lt;p&gt;指定容器运行时的用户。&lt;/p&gt;
+
+&lt;h3 id=&#34;expose&#34;&gt;EXPOSE&lt;/h3&gt;
+
+&lt;p&gt;暴露容器的端口，使宿主机能够通过 &lt;code&gt;docker run -p&lt;/code&gt; 使用。例:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;EXPOSE port
+EXPOSE port1 port2 port3
+
+docker run -p port
+docker run -p host_port1:port1 -p host_port2:port2 host_port3:port3 ...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;env&#34;&gt;ENV&lt;/h3&gt;
+
+&lt;p&gt;设置变量，在 &lt;code&gt;RUN&lt;/code&gt; 构建镜像以及容器启动后均可使用的变量。例:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ENV HOME /root
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;add-与-copy&#34;&gt;ADD 与 COPY&lt;/h3&gt;
+
+&lt;p&gt;容器构建时的命令，构建时命令将文件从容器外复制到容器内，两者区别在于ADD能从网络中下载。所有复制到容器内的文件及文件夹权限为 755 ，uid 、 gid 为 0 。如果复制的源为目录，则将目录下的文件全部复制到指定地,不包括目录;复制源为可识别的压缩文件，docker自动解压到到容器内指定位置;如何复制源为文件且复制目标不以 &lt;code&gt;/&lt;/code&gt; 结束时，docker将文件复制到容器内并改名为指定名字。&lt;/p&gt;
+
+&lt;h3 id=&#34;volume&#34;&gt;VOLUME&lt;/h3&gt;
+
+&lt;p&gt;构建时命令。允许本地文件挂在到容器中。&lt;/p&gt;
+
+&lt;h3 id=&#34;workdir&#34;&gt;WORKDIR&lt;/h3&gt;
+
+&lt;p&gt;构建时命令。重置容器的当前工作路径。&lt;/p&gt;
+
+&lt;h3 id=&#34;onbuild&#34;&gt;ONBUILD&lt;/h3&gt;
+
+&lt;p&gt;构建不运行，容器使用时运行的命令。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>欢迎页</title>
+      <link>//fbigun.github.io/welcome/</link>
+      <pubDate>Sat, 24 Dec 2016 17:01:47 +0800</pubDate>
+      
+      <guid>//fbigun.github.io/welcome/</guid>
+      <description>&lt;p&gt;这是使用Hugo创建的站点中的第一篇文章。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

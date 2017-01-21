@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Docker on 随想</title>
+    <link>//fbigun.github.io/categories/docker/index.xml</link>
+    <description>Recent content in Docker on 随想</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="//fbigun.github.io/categories/docker/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Dockerfile 简单使用实例</title>
+      <link>//fbigun.github.io/post/Dockerfile-use-method/</link>
+      <pubDate>Sat, 31 Dec 2016 11:03:14 +0800</pubDate>
+      
+      <guid>//fbigun.github.io/post/Dockerfile-use-method/</guid>
+      <description>&lt;h2 id=&#34;如何使用&#34;&gt;如何使用&lt;/h2&gt;
+
+&lt;p&gt;Dockerfile 用来创建一个image,包含了用户安装的软件依赖等。&lt;/p&gt;
+
+&lt;p&gt;例: 当前目录下包含Dockerfile,使用命令build来创建新的image,并命名为 explame/explame:v1&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker built -t explame/explame:v1 .
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;dockerfile-关键字&#34;&gt;Dockerfile 关键字&lt;/h2&gt;
+
+&lt;h3 id=&#34;dockerfilede-的基本格式&#34;&gt;Dockerfilede 的基本格式&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;# Comment
+INSTRUCTION agruments
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;from&#34;&gt;FROM&lt;/h3&gt;
+
+&lt;p&gt;基于某个镜像，例:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;FROM ubuntu:14.04
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;run&#34;&gt;RUN&lt;/h3&gt;
+
+&lt;p&gt;执行镜像构建、安装等。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;RUN echo hello
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;maintainer&#34;&gt;MAINTAINER&lt;/h3&gt;
+
+&lt;p&gt;镜像构建者信息等。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;MAINTAINER XXX &amp;lt; XX@XX.com &amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;cmd&#34;&gt;CMD&lt;/h3&gt;
+
+&lt;p&gt;容器启动时执行的命令，Dockerfile 只能包含一个 CMD ，多个只执行最后一个。
+CMD 主要用于容器启动时默认执行的命令，当Docker run command的命令匹配到CMD command时，会替换CMD执行的命令。格式如:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;CMD echo hello world
+CMD [&amp;quot;echo&amp;quot;, &amp;quot;hello world&amp;quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;entrypoint&#34;&gt;ENTRYPOINT&lt;/h3&gt;
+
+&lt;p&gt;类似于CMD，区别在于命令不可替换，和 CMD 可组合使用。例:&lt;/p&gt;
+
+&lt;p&gt;ENTRYPOINT [&amp;ldquo;/bin/echo&amp;rdquo;]
+   CMD [&amp;ldquo;hello word&amp;rdquo;]&lt;/p&gt;
+
+&lt;h3 id=&#34;user&#34;&gt;USER&lt;/h3&gt;
+
+&lt;p&gt;指定容器运行时的用户。&lt;/p&gt;
+
+&lt;h3 id=&#34;expose&#34;&gt;EXPOSE&lt;/h3&gt;
+
+&lt;p&gt;暴露容器的端口，使宿主机能够通过 &lt;code&gt;docker run -p&lt;/code&gt; 使用。例:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;EXPOSE port
+EXPOSE port1 port2 port3
+
+docker run -p port
+docker run -p host_port1:port1 -p host_port2:port2 host_port3:port3 ...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;env&#34;&gt;ENV&lt;/h3&gt;
+
+&lt;p&gt;设置变量，在 &lt;code&gt;RUN&lt;/code&gt; 构建镜像以及容器启动后均可使用的变量。例:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ENV HOME /root
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;add-与-copy&#34;&gt;ADD 与 COPY&lt;/h3&gt;
+
+&lt;p&gt;容器构建时的命令，构建时命令将文件从容器外复制到容器内，两者区别在于ADD能从网络中下载。所有复制到容器内的文件及文件夹权限为 755 ，uid 、 gid 为 0 。如果复制的源为目录，则将目录下的文件全部复制到指定地,不包括目录;复制源为可识别的压缩文件，docker自动解压到到容器内指定位置;如何复制源为文件且复制目标不以 &lt;code&gt;/&lt;/code&gt; 结束时，docker将文件复制到容器内并改名为指定名字。&lt;/p&gt;
+
+&lt;h3 id=&#34;volume&#34;&gt;VOLUME&lt;/h3&gt;
+
+&lt;p&gt;构建时命令。允许本地文件挂在到容器中。&lt;/p&gt;
+
+&lt;h3 id=&#34;workdir&#34;&gt;WORKDIR&lt;/h3&gt;
+
+&lt;p&gt;构建时命令。重置容器的当前工作路径。&lt;/p&gt;
+
+&lt;h3 id=&#34;onbuild&#34;&gt;ONBUILD&lt;/h3&gt;
+
+&lt;p&gt;构建不运行，容器使用时运行的命令。&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
