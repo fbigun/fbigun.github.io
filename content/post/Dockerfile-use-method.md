@@ -16,6 +16,8 @@ Dockerfile 用来创建一个image,包含了用户安装的软件依赖等。
 
     docker built -t explame/explame:v1 .
 
+<!--more-->
+
 ## Dockerfile 关键字
 
 ### Dockerfilede 的基本格式
