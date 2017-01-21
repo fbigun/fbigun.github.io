@@ -33,7 +33,7 @@ script:
 - hugo --baseURL //fbigun.coding.me/
 - cd ./public
 - git add -A .
-- git commit -m "Update docs"
+- git commit --amend -m "Update docs"
 - git push --force --quiet "git@git.coding.net:fbigun/fbigun.coding.me.git" master:master
 
 notifications:
