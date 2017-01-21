@@ -16,7 +16,9 @@ install:
 - sudo mv hugo_0.18.1_linux_amd64/hugo_0.18.1_linux_amd64 /bin/hugo
 
 addons:
-  ssh_known_hosts: git.coding.net
+  ssh_known_hosts:
+  - git.coding.net
+  - github.com
 
 script:
 - hugo --baseURL //fbigun.github.io/
